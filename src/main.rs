@@ -1,4 +1,4 @@
-use basic_platformer::{Scene, TextureMap};
+use basic_platformer::{KeyMap, Scene, TextureMap};
 use raylib::consts::KeyboardKey as Key;
 use raylib::prelude::*;
 
@@ -30,6 +30,9 @@ fn main() {
     };
 
     while !rl.window_should_close() {
+        /* --- INPUT --- */
+        scene.input(&mut rl);
+
         /* --- UPDATE --- */
         scene.update(&mut rl);
 
@@ -47,6 +50,10 @@ struct TestScene {
 }
 
 impl Scene for TestScene {
+    fn input(&mut self, rl: &mut RaylibHandle) {
+        self.player.input(rl);
+    }
+
     fn update(&mut self, rl: &mut RaylibHandle) {
         self.player.update(rl.get_frame_time(), rl);
     }
@@ -58,6 +65,55 @@ impl Scene for TestScene {
     }
 }
 
+enum InputMap {
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT,
+}
+
+impl KeyMap for InputMap {
+    fn is_down(&self, rl: &RaylibHandle) -> bool {
+        use raylib::consts::KeyboardKey::*;
+        match self {
+            Self::UP => rl.is_key_down(KEY_UP) || rl.is_key_down(KEY_W),
+            Self::DOWN => rl.is_key_down(KEY_DOWN) || rl.is_key_down(KEY_S),
+            Self::LEFT => rl.is_key_down(KEY_LEFT) || rl.is_key_down(KEY_A),
+            Self::RIGHT => rl.is_key_down(KEY_RIGHT) || rl.is_key_down(KEY_D),
+        }
+    }
+
+    fn is_up(&self, rl: &RaylibHandle) -> bool {
+        use raylib::consts::KeyboardKey::*;
+        match self {
+            Self::UP => rl.is_key_up(KEY_UP) || rl.is_key_up(KEY_W),
+            Self::DOWN => rl.is_key_up(KEY_DOWN) || rl.is_key_up(KEY_S),
+            Self::LEFT => rl.is_key_up(KEY_LEFT) || rl.is_key_up(KEY_A),
+            Self::RIGHT => rl.is_key_up(KEY_RIGHT) || rl.is_key_up(KEY_D),
+        }
+    }
+
+    fn is_pressed(&self, rl: &RaylibHandle) -> bool {
+        use raylib::consts::KeyboardKey::*;
+        match self {
+            Self::UP => rl.is_key_pressed(KEY_UP) || rl.is_key_pressed(KEY_W),
+            Self::DOWN => rl.is_key_pressed(KEY_DOWN) || rl.is_key_pressed(KEY_S),
+            Self::LEFT => rl.is_key_pressed(KEY_LEFT) || rl.is_key_pressed(KEY_A),
+            Self::RIGHT => rl.is_key_pressed(KEY_RIGHT) || rl.is_key_pressed(KEY_D),
+        }
+    }
+
+    fn is_released(&self, rl: &RaylibHandle) -> bool {
+        use raylib::consts::KeyboardKey::*;
+        match self {
+            Self::UP => rl.is_key_released(KEY_UP) || rl.is_key_released(KEY_W),
+            Self::DOWN => rl.is_key_released(KEY_DOWN) || rl.is_key_released(KEY_S),
+            Self::LEFT => rl.is_key_released(KEY_LEFT) || rl.is_key_released(KEY_A),
+            Self::RIGHT => rl.is_key_released(KEY_RIGHT) || rl.is_key_released(KEY_D),
+        }
+    }
+}
+
 const SPEED: f32 = 500.0;
 const JUMP_POWER: f32 = 800.0;
 const JUMP_MULTI: f32 = 5.0;
@@ -65,7 +121,6 @@ const JUMP_MULTI: f32 = 5.0;
 struct Player {
     pos: Vector2,
     vel: Vector2,
-    on_ground: bool,
     rec: Rectangle,
 }
 
@@ -75,33 +130,35 @@ impl Player {
             pos: rvec2(x, y),
             vel: Vector2::default(),
             rec: Rectangle::new(0.0, 0.0, map.tile_width() as f32, map.tile_height() as f32),
-            on_ground: false,
+        }
+    }
+
+    fn input(&mut self, rl: &mut RaylibHandle) {
+        let on_ground = self.is_on_ground();
+
+        if InputMap::LEFT.is_down(rl) {
+            self.vel.x = -SPEED;
+        }
+        if InputMap::RIGHT.is_down(rl) {
+            self.vel.x = SPEED;
+        }
+
+        if InputMap::UP.is_pressed(rl) && on_ground {
+            self.vel.y = -JUMP_POWER;
+        }
+        if InputMap::UP.is_down(rl) && !on_ground && self.vel.y < 0.0 {
+            self.vel.y -= JUMP_MULTI;
         }
     }
 
     fn update(&mut self, delta: f32, rl: &mut RaylibHandle) {
-        if self.pos.y + self.rec.height >= GROUND {
-            self.on_ground = true;
+        let on_ground = self.is_on_ground();
+
+        if on_ground {
             self.pos.y = GROUND - self.rec.height;
-        } else {
-            self.on_ground = false;
         }
 
-        if rl.is_key_down(Key::KEY_LEFT) {
-            self.vel.x = -SPEED;
-        }
-        if rl.is_key_down(Key::KEY_RIGHT) {
-            self.vel.x = SPEED;
-        }
-
-        if rl.is_key_pressed(Key::KEY_UP) && self.on_ground {
-            self.vel.y = -JUMP_POWER;
-        }
-        if rl.is_key_down(Key::KEY_UP) && !self.on_ground && self.vel.y < 0.0 {
-            self.vel.y -= JUMP_MULTI;
-        }
-
-        if !self.on_ground {
+        if !on_ground {
             self.vel.y += GRAVITY;
         } else {
             self.vel.y = self.vel.y.clamp(-JUMP_POWER, 0.0);
@@ -110,6 +167,14 @@ impl Player {
         self.vel.x *= 0.98;
         self.vel.x = self.vel.x.clamp(-SPEED, SPEED);
         self.pos += self.vel * delta;
+    }
+
+    fn is_on_ground(&self) -> bool {
+        if self.pos.y + self.rec.height >= GROUND {
+            true
+        } else {
+            false
+        }
     }
 
     fn render(&self, map: &TextureMap, d: &mut RaylibDrawHandle) {

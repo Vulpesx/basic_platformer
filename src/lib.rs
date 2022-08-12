@@ -1,6 +1,3 @@
-use std::collections::HashMap;
-
-use raylib::consts::KeyboardKey as Key;
 use raylib::prelude::*;
 
 pub struct TextureMap {
@@ -46,39 +43,15 @@ impl TextureMap {
     }
 }
 
-pub struct InputMap {
-    map: HashMap<Key, String>,
-}
-
-impl InputMap {
-    pub fn get_mapping(&self, key: Key) -> String {
-        if let Some(m) = self.map.get(&key) {
-            m.to_string()
-        } else {
-            String::from("unmapped")
-        }
-    }
-
-    pub fn add_mapping(&mut self, key: Key, map: &str) -> Option<String> {
-        self.map.insert(key, map.to_string())
-    }
-
-    pub fn unmap_key(&mut self, key: Key) -> Option<(Key, String)> {
-        self.map.remove_entry(&key)
-    }
-
-    pub fn force_mapping(&mut self, key: Key, map: &str) -> Option<String> {
-        if self.map.contains_key(&key) {
-            let prev = self.map.get(&key).unwrap().to_string();
-            self.map.insert(key, map.to_string());
-            Some(prev)
-        } else {
-            None
-        }
-    }
+pub trait KeyMap {
+    fn is_pressed(&self, rl: &RaylibHandle) -> bool;
+    fn is_released(&self, rl: &RaylibHandle) -> bool;
+    fn is_down(&self, rl: &RaylibHandle) -> bool;
+    fn is_up(&self, rl: &RaylibHandle) -> bool;
 }
 
 pub trait Scene {
+    fn input(&mut self, rl: &mut RaylibHandle);
     fn update(&mut self, rl: &mut RaylibHandle);
     fn render(&self, d: &mut RaylibDrawHandle);
 }
