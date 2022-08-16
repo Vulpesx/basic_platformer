@@ -1,9 +1,6 @@
-use basic_platformer::math::*;
 use basic_platformer::{resources::TextureMap, Scene};
 use raylib::prelude::*;
 
-mod phys_test;
-use phys_test::*;
 mod player;
 use player::*;
 
@@ -29,7 +26,7 @@ fn main() {
     };
 
     let player = Player::new(SWIDTH / 2.0, SHEIGHT / 2.0, &map);
-    let mut scene = PhysTest::new(&thread); // let mut scene = TestScene::new(player, map);
+    let mut scene = TestScene::new(player, &mut rl, &thread);
 
     while !rl.window_should_close() {
         /* --- INPUT --- */
@@ -39,9 +36,9 @@ fn main() {
         scene.update(&mut rl);
 
         /* --- DRAW --- */
-        // let mut d = rl.begin_drawing(&thread);
+        let mut d = rl.begin_drawing(&thread);
 
-        // d.clear_background(Color::GRAY);
-        // scene.render(&mut d);
+        d.clear_background(Color::GRAY);
+        scene.render(&mut d);
     }
 }

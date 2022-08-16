@@ -1,7 +1,7 @@
 use raylib::prelude::*;
 
-pub mod math;
 pub mod resources;
+pub mod tile_map;
 
 pub trait KeyMap {
     fn is_pressed(&self, rl: &RaylibHandle) -> bool;

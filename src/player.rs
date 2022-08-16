@@ -1,5 +1,5 @@
 use crate::consts::*;
-use basic_platformer::{resources::TextureMap, KeyMap, Scene};
+use basic_platformer::{resources::TextureMap, tile_map::TileMap, KeyMap, Scene};
 use raylib::prelude::*;
 
 const GROUND: f32 = (3.0 * SHEIGHT) / 4.0;
@@ -25,13 +25,20 @@ pub enum InputMap {
 pub struct TestScene {
     player: Player,
     texture_map: TextureMap,
+    tile_map: TileMap,
 }
 
 impl TestScene {
-    pub fn new(player: Player, texture_map: TextureMap) -> Self {
+    pub fn new(player: Player, rl: &mut RaylibHandle, thread: &RaylibThread) -> Self {
         Self {
             player,
-            texture_map,
+            texture_map: TextureMap::new(
+                rl.load_texture(thread, "assets/tilemap_packed.png")
+                    .expect("could not load texture"),
+                16,
+                16,
+            ),
+            tile_map: TileMap::new("assets/test_level.tmj", rl, thread),
         }
     }
 }
