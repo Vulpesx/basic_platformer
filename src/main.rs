@@ -1,7 +1,4 @@
-use basic_platformer::{
-    resources::{TextureManager, TextureMap},
-    Scene,
-};
+use basic_platformer::Scene;
 use raylib::prelude::*;
 
 mod player;
@@ -19,16 +16,9 @@ fn main() {
         .title("BAsic Platformer")
         .build();
 
-    let mut rmanager = TextureManager::new();
-    let map = rmanager
-        .load("assets/tilemap_packed.png", &mut rl, &thread)
+    let map = rl
+        .load_texture(&thread, "assets/tilemap_packed.png")
         .unwrap();
-
-    let map = {
-        let width = map.width / 10;
-        let height = map.height / 6;
-        TextureMap::new(map, width, height)
-    };
 
     let player = Player::new(SWIDTH / 2.0, SHEIGHT / 2.0, &map);
     let mut scene = TestScene::new(player, rmanager.get("assets/tilemap_packed").unwrap());
