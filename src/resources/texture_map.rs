@@ -1,13 +1,15 @@
 use raylib::prelude::*;
 
-pub struct TextureMap {
-    map: Texture2D,
+use super::TextureHandle;
+
+pub struct TextureMap<'a> {
+    map: TextureHandle<'a>,
     tile_width: i32,
     tile_height: i32,
 }
 
-impl TextureMap {
-    pub fn new(map: Texture2D, tile_width: i32, tile_height: i32) -> Self {
+impl<'a> TextureMap<'a> {
+    pub fn new<'b: 'a>(map: TextureHandle<'b>, tile_width: i32, tile_height: i32) -> Self {
         Self {
             map,
             tile_width,
