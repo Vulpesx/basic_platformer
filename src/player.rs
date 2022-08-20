@@ -1,9 +1,5 @@
 use crate::consts::*;
-use basic_platformer::{
-    resources::{TextureHandle, TextureManager, TextureMap},
-    tile_map::TileMap,
-    KeyMap, Scene,
-};
+use basic_platformer::{KeyMap, Scene};
 use raylib::prelude::*;
 
 const GROUND: f32 = (3.0 * SHEIGHT) / 4.0;
@@ -16,7 +12,7 @@ const JUMP_MULTI: f32 = 5.0;
 pub struct Player {
     pos: Vector2,
     vel: Vector2,
-    rec: Rectangle,
+    rect: Rectangle,
 }
 
 pub enum InputMap {
@@ -26,21 +22,18 @@ pub enum InputMap {
     Right,
 }
 
-pub struct TestScene<'a> {
+pub struct TestScene {
     player: Player,
-    texture_map: TextureMap<'a>,
+    texture: Texture2D,
 }
 
-impl<'a> TestScene<'a> {
-    pub fn new(player: Player, texture: TextureHandle<'a>) -> Self {
-        Self {
-            player,
-            texture_map: TextureMap::new(texture, 16, 16),
-        }
+impl TestScene {
+    pub fn new(player: Player, texture: Texture2D) -> Self {
+        Self { player, texture }
     }
 }
 
-impl<'a> Scene for TestScene<'a> {
+impl Scene for TestScene {
     fn input(&mut self, rl: &mut RaylibHandle) {
         self.player.input(rl);
     }
@@ -50,18 +43,18 @@ impl<'a> Scene for TestScene<'a> {
     }
 
     fn render(&self, d: &mut RaylibDrawHandle) {
-        self.player.render(&self.texture_map, d);
+        self.player.render(&self.texture, d);
         d.draw_line(0, GROUND as i32, SWIDTH as i32, GROUND as i32, Color::GREEN);
         d.draw_text("WIP", 0, 0, 20, Color::SKYBLUE);
     }
 }
 
 impl Player {
-    pub fn new(x: f32, y: f32, map: &TextureMap) -> Self {
+    pub fn new(x: f32, y: f32, map: &Texture2D) -> Self {
         Self {
             pos: rvec2(x, y),
             vel: Vector2::default(),
-            rec: Rectangle::new(0.0, 0.0, map.tile_width() as f32, map.tile_height() as f32),
+            rect: Rectangle::new(0., 4. * 16., 16., 16.),
         }
     }
 
@@ -87,7 +80,7 @@ impl Player {
         let on_ground = self.is_on_ground();
 
         if on_ground {
-            self.pos.y = GROUND - self.rec.height;
+            self.pos.y = GROUND - self.rect.height;
         }
 
         if !on_ground {
@@ -102,16 +95,16 @@ impl Player {
     }
 
     fn is_on_ground(&self) -> bool {
-        self.pos.y + self.rec.height >= GROUND
+        self.pos.y + self.rect.height >= GROUND
     }
 
-    pub fn render(&self, map: &TextureMap, d: &mut RaylibDrawHandle) {
-        d.draw_texture_rec(map.texture(), map.tile(0, 4), self.pos, Color::WHITE);
+    pub fn render(&self, map: &Texture2D, d: &mut RaylibDrawHandle) {
+        d.draw_texture_rec(map, self.rect, self.pos, Color::WHITE);
         d.draw_rectangle_lines(
             self.pos.x as i32,
             self.pos.y as i32,
-            map.tile_width(),
-            map.tile_height(),
+            self.rect.width as i32,
+            self.rect.height as i32,
             Color::GREEN,
         );
     }

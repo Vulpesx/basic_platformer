@@ -21,7 +21,7 @@ fn main() {
         .unwrap();
 
     let player = Player::new(SWIDTH / 2.0, SHEIGHT / 2.0, &map);
-    let mut scene = TestScene::new(player, rmanager.get("assets/tilemap_packed").unwrap());
+    let mut scene = TestScene::new(player, map);
 
     while !rl.window_should_close() {
         /* --- INPUT --- */
