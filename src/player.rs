@@ -1,10 +1,7 @@
 use crate::consts::*;
-use basic_platformer::{
-    resources::{TextureHandle, TextureManager, TextureMap},
-    tile_map::TileMap,
-    KeyMap, Scene,
-};
+use basic_platformer::{resources::TextureMap, KeyMap, Scene};
 use raylib::prelude::*;
+use std::rc::Rc;
 
 const GROUND: f32 = (3.0 * SHEIGHT) / 4.0;
 const GRAVITY: f32 = 9.8;
@@ -26,13 +23,13 @@ pub enum InputMap {
     Right,
 }
 
-pub struct TestScene<'a> {
+pub struct TestScene {
     player: Player,
-    texture_map: TextureMap<'a>,
+    texture_map: TextureMap,
 }
 
-impl<'a> TestScene<'a> {
-    pub fn new(player: Player, texture: TextureHandle<'a>) -> Self {
+impl TestScene {
+    pub fn new(player: Player, texture: Rc<Texture2D>) -> Self {
         Self {
             player,
             texture_map: TextureMap::new(texture, 16, 16),
@@ -40,7 +37,7 @@ impl<'a> TestScene<'a> {
     }
 }
 
-impl<'a> Scene for TestScene<'a> {
+impl Scene for TestScene {
     fn input(&mut self, rl: &mut RaylibHandle) {
         self.player.input(rl);
     }
