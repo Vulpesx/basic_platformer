@@ -1,5 +1,7 @@
 use raylib::prelude::*;
 
+pub mod resources;
+
 pub trait KeyMap {
     fn is_pressed(&self, rl: &RaylibHandle) -> bool;
     fn is_released(&self, rl: &RaylibHandle) -> bool;

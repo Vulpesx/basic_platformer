@@ -1,6 +1,7 @@
 use crate::consts::*;
-use basic_platformer::{KeyMap, Scene};
+use basic_platformer::{resources::TextureMap, KeyMap, Scene};
 use raylib::prelude::*;
+use std::rc::Rc;
 
 const GROUND: f32 = (3.0 * SHEIGHT) / 4.0;
 const GRAVITY: f32 = 9.8;
@@ -24,12 +25,15 @@ pub enum InputMap {
 
 pub struct TestScene {
     player: Player,
-    texture: Texture2D,
+    texture_map: TextureMap,
 }
 
 impl TestScene {
-    pub fn new(player: Player, texture: Texture2D) -> Self {
-        Self { player, texture }
+    pub fn new(player: Player, texture: Rc<Texture2D>) -> Self {
+        Self {
+            player,
+            texture_map: TextureMap::new(texture, 16, 16),
+        }
     }
 }
 
@@ -43,7 +47,7 @@ impl Scene for TestScene {
     }
 
     fn render(&self, d: &mut RaylibDrawHandle) {
-        self.player.render(&self.texture, d);
+        self.player.render(&self.texture_map, d);
         d.draw_line(0, GROUND as i32, SWIDTH as i32, GROUND as i32, Color::GREEN);
         d.draw_text("WIP", 0, 0, 20, Color::SKYBLUE);
     }
@@ -98,8 +102,8 @@ impl Player {
         self.pos.y + self.rect.height >= GROUND
     }
 
-    pub fn render(&self, map: &Texture2D, d: &mut RaylibDrawHandle) {
-        d.draw_texture_rec(map, self.rect, self.pos, Color::WHITE);
+    pub fn render(&self, map: &TextureMap, d: &mut RaylibDrawHandle) {
+        d.draw_texture_rec(map.texture(), map.tile(0, 4), self.pos, Color::WHITE);
         d.draw_rectangle_lines(
             self.pos.x as i32,
             self.pos.y as i32,
